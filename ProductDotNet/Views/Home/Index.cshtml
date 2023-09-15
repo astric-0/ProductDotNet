@@ -21,7 +21,7 @@
 
 <script>
 
-    function checkErrors (errors) {        
+    function checkErrors (errors) {
         for (let error of Object.keys(errors))
             if (errors[error].length > 0) return true;
         return false;
@@ -47,7 +47,7 @@
                         return errorsAlert(errorlist);
 
                     const response = await axios.post(gethost('/Home/AddProduct'), product);
-                   
+
                     if (response.status == 200) return console.log('Success');
 
                     throw new Error('Some error occured');
@@ -60,5 +60,5 @@
                 event.preventDefault();
             }
         }
-    }    
+    }
 </script>
