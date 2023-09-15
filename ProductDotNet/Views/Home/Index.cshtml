@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@Html.Partial("~/Views/Templates/Input.cshtml")
+<div id="app">
+    <form v-on:submit.prevent="onSubmit">
+        <c-input label="Product Name" :model="productInfo" field="name" placeholder="Enter Product Name" :validator="(value => {
+                if (value.length < 5)
+                    return 'Name should have atleast five chars';
+                return false;
+            })" :error-cb="errorSetter('name')" required autofocus></c-input>
+        <c-input label="Product ID" type="number" :model="productInfo" field="id" :validator="(value => {
+                if (value % 2)
+                    return 'Odd numbers are not allowed';
+                return false;
+            })" :error-cb="errorSetter('id')" placeholder="Enter Product Id" required></c-input>
+
+        <button class="btn btn-dark" @@click="postProduct(productInfo, errors)">Send</button>
+    </form>
+</div>
+
+<script>
+
+    function checkErrors (errors) {        
+        for (let error of Object.keys(errors))
+            if (errors[error].length > 0) return true;
+        return false;
+    }
+
+    const appProps = {
+        setup(props) {
+            const productInfo = Vue.ref({
+                id: '', name: ''
+            });
+
+            const errors = Vue.ref({});
+
+            const errorSetter = field => error => errors.value[field] = error;
+
+            return { productInfo, errors, errorSetter };
+        },
+
+        methods: {
+            async postProduct(product, errorlist) {
+                try {
+                    if (checkErrors(errorlist))
+                        return errorAlert(errorlist);
+
+                    const response = await axios.post(gethost('/Home/AddProduct'), product);
+                   
+                    if (response.status == 200)
+                        return console.log('Success');
+                    console.log('failed');
+                } catch (error) {
+                    console.log(error.message);
+                }
+            },
+
+            onSubmit(event) {
+                event.preventDefault();
+            }
+        }
+    }    
+</script>
