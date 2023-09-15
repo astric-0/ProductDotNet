@@ -2,7 +2,15 @@
     return "https://localhost:44326" + path;
 }
 
-function errorAlert(errors) {
+function errorAlert (errorText) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorText
+    })
+}
+
+function errorsAlert(errors) {
     const template = error => `<li class='list-group-item list-group-item-danger'> ${ error } </li>`;
 
     let htmlStr = '';

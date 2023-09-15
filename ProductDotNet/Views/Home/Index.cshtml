@@ -44,15 +44,15 @@
             async postProduct(product, errorlist) {
                 try {
                     if (checkErrors(errorlist))
-                        return errorAlert(errorlist);
+                        return errorsAlert(errorlist);
 
                     const response = await axios.post(gethost('/Home/AddProduct'), product);
                    
-                    if (response.status == 200)
-                        return console.log('Success');
-                    console.log('failed');
+                    if (response.status == 200) return console.log('Success');
+
+                    throw new Error('Some error occured');
                 } catch (error) {
-                    console.log(error.message);
+                    errorAlert(error.message);
                 }
             },
 
