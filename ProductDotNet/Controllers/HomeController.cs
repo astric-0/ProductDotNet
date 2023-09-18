@@ -1,12 +1,25 @@
 ﻿using ProductDotNet.Models;
-using System.Net;
 using System.Web.Mvc;
+using ProductDotNet.Service.ProductDotNetService;
 using System.Net.Http;
+using System.Net;
 
 namespace ProductDotNet.Controllers
 {
     public class HomeController : Controller
-    {
+    {     
+        private readonly IProductService _productService;
+
+        /*public HomeController()
+        {
+
+        }*/
+
+        public HomeController(IProductService productService)
+        {
+            _productService = productService;
+        }
+
         public ActionResult Index()
         {
             return View();
