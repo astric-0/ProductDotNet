@@ -1,14 +1,23 @@
-<template id="input">
+<template id="inputCP">
     <div class="form-group">
         <label>{{ label + (required ? '*' : '') }}</label>
-        <input :type="type" class="form-control my-2" v-model="state[field]" @@input="validate" :placeholder="placeholder" :autofocus="autofocus"/>
+        <textarea v-if="type=='textarea'"  class="form-control my-2 w-100" v-model="state[field]" @@input="validate" :placeholder="placeholder" :autofocus="autofocus">
+        </textarea>
+        <input v-else 
+               :type="type" 
+               class="form-control my-2 w-100" 
+               v-model="state[field]" 
+               @@input="validate" 
+               :placeholder="placeholder" 
+               :autofocus="autofocus" 
+               />
         <span v-if="error" class="text-danger">{{ error }}</span>
     </div>
 </template>
 
 <script>
     const inputCP = {
-        template: '#input',
+        template: '#inputCP',
         
         props: {
             label: {
@@ -46,27 +55,29 @@
             'error-cb': Function
         },
         
-        setup (props) {
+        setup(props) {
             const state = Vue.ref(props.model);
             const error = Vue.ref(false);
             
             const validate = _ => {
-                if (state.value[props.field]) {                    
+                const value = state.value[props.field]
+                
+                const len = 'string' == typeof value ? state.value[props.field]?.trim().length : 1;
+                if (value && len != 0) {                    
                     if (props.validator) {
-                        error.value = props.validator(state.value[props.field]);                        
+                        error.value = props.validator(value);                        
                         if (error.value) {
                             props.errorCb && props.errorCb(error.value); 
                             return;
                         }
                     }                      
                 }
-
-                else if (props.required === true && !state.value[props.field]) {
+                
+                else if (props.required === true && (!value || len == 0)) {
                     error.value = 'Field is required';
                     props.errorCb && props.errorCb(props.field + ' is required');
                     return;
                 }
-
 
                 error.value = false;
                 props.errorCb && props.errorCb('');

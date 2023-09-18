@@ -30,17 +30,32 @@ function errorsAlert(errors) {
 const app = Vue.createApp(appProps ?? {});
 
 (_ => {
-    const componentList = [
-        { name: 'c-input', main: inputCP }
-    ];
-
-    const setComponent = component => {
-        const { name, main } = component;
-        if (!(name && main)) return;
-        app.component(name, main);
+   
+    const check = cb => {
+        try {
+            return cb();
+        } catch (_) {
+            return false;
+        }
     }
 
+    const componentList = [
+        { name: 'c-input', main: check(_ => inputCP) },
+        { name: 'c-checkboxes', main: check(_ => checkBoxCP) },
+        { name: 'c-radiobtns', main: check(_ => radioCP) }
+    ];
+
+    const nonloaded = [];
+    const setComponent = component => {
+        const { name, main } = component;
+        if (!(name && main)) {
+            nonloaded.push(name ?? main ?? 'component')
+            return;
+        };
+        app.component(name, main);
+    }
     componentList.forEach(component => setComponent(component));
+    nonloaded.length > 0 && console.log("Nonloaded Components: ", nonloaded);
 })();
 
 app.mount("#app");
