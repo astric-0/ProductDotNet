@@ -1,11 +1,11 @@
 <template id="inputCP">
-    <div class="form-group">
+    <div class="row form-group">
         <label>{{ label + (required ? '*' : '') }}</label>
         <textarea v-if="type=='textarea'"  class="form-control my-2" v-model="state[field]" @@input="validate" :placeholder="placeholder" :autofocus="autofocus">
         </textarea>
         <input v-else 
                :type="type" 
-               class="form-control my-2 w-100" 
+               class="form-control my-2" 
                v-model="state[field]" 
                @@input="validate" 
                :placeholder="placeholder" 
