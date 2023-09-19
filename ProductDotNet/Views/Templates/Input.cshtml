@@ -1,17 +1,17 @@
 <template id="inputCP">
-    <div class="row form-group">
+    <div class="row form-group my-3">
         <label>{{ label + (required ? '*' : '') }}</label>
-        <textarea v-if="type=='textarea'"  class="form-control my-2" v-model="state[field]" @@input="validate" :placeholder="placeholder" :autofocus="autofocus">
+        <textarea v-if="type=='textarea'"  class="form-control mx-2 my-3" v-model="state[field]" @@input="validate" :placeholder="placeholder" :autofocus="autofocus">
         </textarea>
         <input v-else 
                :type="type" 
-               class="form-control my-2" 
+               class="form-control mx-2 my-1" 
                v-model="state[field]" 
                @@input="validate" 
                :placeholder="placeholder" 
                :autofocus="autofocus" 
-               />
-        <span v-if="error" class="text-danger">{{ error }}</span>
+        />
+        <span class="text-danger">{{ error || '&nbsp;' }}</span>
     </div>
 </template>
 

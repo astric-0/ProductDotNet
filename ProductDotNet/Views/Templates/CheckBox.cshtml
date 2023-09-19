@@ -1,0 +1,91 @@
+﻿<template id="checkBoxCP">
+    <div class="form-group">
+        <label>{{ label + (required ? '*' : '') }}</label>
+        <div class="">
+            <div class="my-2 w-100 btn-group">
+                <button v-for="option in options" :class="getBtnClass(option)" @@click="selectValue(option.value)">{{ option.name }}</button>
+            </div>
+        </div>
+        <span class="text-danger">{{ error || "&nbsp;" }} </span>
+    </div>
+</template>
+
+<script>
+    const checkBoxProps = {
+        label: {
+            type: String,
+            default: ''
+        },
+        model: {
+            type: Object,
+            default: {
+                checkbox: []
+            }
+        },
+
+        field: {
+            type: String,
+            default: 'checkbox'
+        },
+
+        options: {
+            type: Array,
+            default: []
+        },
+
+        required: {
+            type: Boolean,
+            default: false
+        },
+
+        validator: Function,
+        'error-cb': Function
+    }
+
+    const checkBoxCP = {
+        template: "#checkBoxCP",
+
+        props: checkBoxProps,
+
+        setup(props) {
+            const state = Vue.ref(props.model);
+            const error = Vue.ref(false);
+
+            function getBtnClass(option) {
+                return `btn btn-outline-${option?.color ?? 'primary'} ${state.value[props.field].includes(option.value) ? 'active' : ''}`;
+            }
+
+            function selectValue(value) {
+                if (state.value[props.field].includes(value))
+                    state.value[props.field] = state.value[props.field].filter(item => item != value);                                        
+                else
+                    state.value[props.field].push(value);
+                validate();
+            }
+            
+            function validate() {
+                const setError = message => props.errorCb && props.errorCb(message);
+
+                error.value = (_ => {
+                    if (props.required && state.value[props.field].length == 0) {
+                        setError(props.field + ' is required');
+                        return `Field is required`;
+                    }
+
+                    else if (props.validator) {
+                        const errorMessage = props.validator(state.value[props.field], props.options);
+                        setError(errorMessage || '');
+                        return errorMessage;
+                    }
+
+                    setError('');
+                    return false;
+                })();                
+            }
+
+            Vue.onMounted(validate);
+
+            return { state, error, getBtnClass, selectValue };
+        },   
+    }
+</script>

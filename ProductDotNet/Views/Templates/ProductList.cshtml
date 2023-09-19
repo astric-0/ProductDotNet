@@ -1,0 +1,73 @@
+<template id="productListCP">
+    <div v-if="products.length == 0" class="h2 text-center text-danger mt-5 mb-2">Add Products</div>
+    <div v-else class="container">
+        <h1 class="text-primary text-center">Products</h1>
+        <ul class="list-group">
+            <li v-if="detailed" class="list-group-item bg-dark text-light">
+                <div class="row text-center">
+                    <div class="col" v-for="key in Object.keys(products[0])" :key="key">{{ key }}</div>
+                    <div class="col" ></div>
+                </div>
+            </li>
+
+            <li class="list-group-item border-0" v-for="product in products">
+                <div class="row">
+                    <h4 v-if="!detailed" class="col-7 text-break p-2 shadow m-0 border rounded">{{ product.name }}</h4>
+                    <template v-else>                        
+                        <div v-for="value in product" class="col text-break p-2 m-0 border">{{ value instanceof Array ? value.join() : value }}</div>
+                    </template>
+                    <div class="col btn-group">
+                        <button class="btn btn-outline-danger" @@click="removeProduct(product.id, removeCb)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                        <button v-if="!detailed" class="btn btn-outline-info" @@click="detailAlert(product)">
+                            <i class="fa-solid fa-info"></i>
+                        </button>
+                        <button class="btn btn-primary" @@click="_ => onUpdate && onUpdate(product)">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</template>
+<script>
+    const productListCP = {
+        template: "#productListCP",
+        props: {
+            products: {
+                type: Array,
+                default: []
+            },
+            
+            'detailed': {
+                type: Boolean,
+                default: false
+            },
+
+            'remove-cb': Function,
+            'on-update': Function
+        },
+        methods: {
+             async removeProduct(id, cb) {
+                try {
+                    const response = await axios.get(gethost('/Home/DeleteProduct/' + id));                    
+                    if (response.status == 200) {
+                        cb && cb(id);
+                        return successAlert("Product Removed");
+                    }
+                    
+                    throw new Error("Couldn't delete " + response.status);
+                } catch (error) {
+                    errorAlert(error.message);
+                }
+            },
+
+            detailAlert(product) {
+                productDetailAlert(product)
+            }
+            
+        }
+    }
+</script>

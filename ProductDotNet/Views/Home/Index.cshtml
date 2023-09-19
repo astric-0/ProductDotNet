@@ -1,99 +1,149 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+
 @Html.Partial("~/Views/Templates/Input.cshtml")
 @Html.Partial("~/Views/Templates/CheckBox.cshtml")
 @Html.Partial("~/Views/Templates/Radio.cshtml")
+@Html.Partial("~/Views/Templates/ProductList.cshtml")
 
 <div id="app">
-    {{ productInfo }}
-    <form v-on:submit.prevent="onSubmit">
-        <c-input label="Product Name" :model="productInfo" field="name" placeholder="Enter Product Name" :error-cb="errorSetter('name')" required>
-        </c-input>
-        <c-input label="Product ID" type="number" :model="productInfo" field="id" :error-cb="errorSetter('id')" placeholder="Enter Product Id" required>
-        </c-input>
+    <div class="row">
+        <div class="col-5">
+           
+            <form v-on:submit.prevent="onSubmit" :key="productInfo">
+                <c-input label="Product Name" :model="productInfo" field="name" placeholder="Enter Product Name"
+                    :error-cb="errorSetter('name')" required>
+                </c-input>
+                <c-input label="Product ID" type="number" :model="productInfo" field="id" :error-cb="errorSetter('id')"
+                    placeholder="Enter Product Id" required>
+                </c-input>
 
-        <div class="row">
-            <div class="col">
-                <c-checkboxes label="Size" :options="options" :model="productInfo" field="size" :error-cb="errorSetter('size')" 
-                    :validator="((value, _) => {
+                <div class="row">
+                    <div class="col">
+                        <c-checkboxes label="Size" :options="getSizeOptions()" :model="productInfo" field="size"
+                            :error-cb="errorSetter('size')" :validator="((value, _) => {
                                 if (value.length > 2)
                                      return 'Select only two';
                                 return false;
-                              })"
-                required>
-                </c-checkboxes>
-            </div>
-            <div class="col">
-                <c-radiobtns label="Color" :options="radioOptions" :model="productInfo" field="color" :error-cb="errorSetter('color')" required>
-                </c-radiobtns>
-            </div>
-        </div>
+                              })" required>
+                        </c-checkboxes>
+                    </div>
+                    <div class="col">
+                        <c-radiobtns label="Color" :options="getColorOptions()" :model="productInfo" field="color"
+                            :error-cb="errorSetter('color')" required>
+                        </c-radiobtns>
+                    </div>
+                </div>
 
-        <c-input label="Description" 
-                 type="textarea" 
-                 :model="productInfo" 
-                 field="description" 
-                 placeholder="About the product" 
-                 :error-cb="errorSetter('description')"
-                 required
-        >
-        </c-input>
-        <button class="btn btn-dark" @@click="postProduct(productInfo, errors)">Send</button>
-    </form>
+                <c-input label="Description" type="textarea" :model="productInfo" field="description"
+                    placeholder="About the product" :error-cb="errorSetter('description')" required>
+                </c-input>
+                <button class="btn btn-dark" @@click="postProduct(productInfo, errors, isUpdate, isUpdate ? updateProduct : addProduct)">{{ !isUpdate ? 'Add' : 'Update' }}</button>
+            </form>
+        </div>
+        <div class="col">
+            <product-list :products="products" :remove-cb="removeProduct" :on-update="onUpdate" detailed></product-list>
+        </div>
+    </div>
 </div>
 
 <script>
 
     function checkErrors(errors) {
-        for (let error of Object.keys(errors))
+        for (let error in errors)
             if (errors[error].length > 0) return true;
         return false;
     }
 
     const appProps = {
         setup(props) {
-            const productInfo = Vue.ref({
+            const init = {
                 id: '', name: '',
                 size: [],
-                color: ''
-            });
+                color: '',
+                description: ''
+            }
+
+            const productInfo = Vue.ref({});
+            const products = Vue.ref([]);
+            const isUpdate = Vue.ref(false);
+
+            const resetProductInfo = _ => {
+                productInfo.value = { ...init, size: [ ...init.size ] }
+            } 
+            
+            resetProductInfo();
+
+            const onUpdate = product => {
+                productInfo.value = { ...product, size: [ ...product.size ] };
+                const { id } = { ...product };
+                isUpdate.value = id; 
+            }
+
+            const addProduct = product => {
+                resetProductInfo();
+                products.value = [ ...products.value, { ...product } ];
+            }
+
+            const updateProduct = newProductInfo => {
+                products.value = products.value.map(item => ((item.id == isUpdate.value) ? newProductInfo : item));
+                isUpdate.value = false;
+                resetProductInfo();
+            }
+
+            const removeProduct = id => {
+                products.value = products.value.filter(product => product.id != id);
+            }
+
+            getAllProducts()
+                .then(data => products.value = data)
+                .catch(error => errorAlert(error))
 
             const errors = Vue.ref({});
 
             const errorSetter = field => error => errors.value[field] = error;
 
-            const options = [
-                { value: "regular", name: "1x" },
-                { value: "medium", name: "2x" },
-                { value: "large", name: "3x" },
-            ]
-
-            const radioOptions = [
-                { value: "red", name: "Red", color: "danger" },
-                { value: "blue", name: "Blue", color: "primary" },
-                { value: "black", name: "Black", color: "dark" },
-            ]
-
-            return { productInfo, errors, errorSetter, options, radioOptions };
+            return { productInfo, errors, errorSetter, products, addProduct, removeProduct, isUpdate, onUpdate, updateProduct };
         },
 
         methods: {
-            async postProduct(product, errorlist) {
+            async postProduct(product, errorlist, isUpdate, cb) {
                 try {
                     if (checkErrors(errorlist))
                         return errorsAlert(errorlist);
+                    
+                    const response = isUpdate !== false 
+                        ? await axios.post(gethost('/Home/UpdateProduct/' + isUpdate), product)
+                        : await axios.post(gethost('/Home/AddProduct'), product)
 
-                    const response = await axios.post(gethost('/Home/AddProduct'), product);
-
-                    if (response.status == 200) return console.log('Success');
+                    if (response.status == 200) {
+                        cb && cb(product);
+                        return successAlert(`Product ${ isUpdate ? 'Updated' : 'Added' }`);
+                    }
 
                     throw new Error('Some error occured');
                 } catch (error) {
+                    console.error(error);
                     errorAlert(error.message);
                 }
-            },
+            },            
 
+            getColorOptions() {
+                return [
+                    { value: "red", name: "Red", color: "danger" },
+                    { value: "blue", name: "Blue", color: "primary" },
+                    { value: "black", name: "Black", color: "dark" },
+                    { value: "green", name: "Green", color: "success" }
+                ] 
+            },            
+            getSizeOptions() {
+                return [
+                    { value: "regular", name: "1x" },
+                    { value: "medium", name: "2x" },
+                    { value: "large", name: "3x" },
+                ]
+            },
             onSubmit(event) {
                 event.preventDefault();
             }

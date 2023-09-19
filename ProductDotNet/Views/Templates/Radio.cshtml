@@ -1,0 +1,85 @@
+﻿<template id="radioCP">
+    <div class="form-group">
+        <label>{{ label + (required ? '*' : '') }}</label>
+        <div class="btn-group w-100 my-2">
+            <button v-for="option in options" :class="getClass(option)" @@click="selectValue(option.value)">{{ option.name }}</button>
+        </div>
+        <span class="text-danger">{{ error || "&nbsp;" }}</span>
+    </div>
+</template>
+<script>
+    const radioProps = {
+        label: {
+            type: String,
+            default: ''
+        },
+
+        options: {
+            type: Array,
+            default: []
+        },
+
+        model: {
+            type: Object,
+            default: {
+                radio: ''
+            }
+        },
+
+        field: {
+            type: String,
+            default: 'radio'
+        },
+
+        required: {
+            type: Boolean,
+            default: false
+        },
+
+        validator: Function,
+        'error-cb': Function
+    }
+    const radioCP = {
+        template: "#radioCP",
+        props: radioProps,
+        setup(props) {
+            const state = Vue.ref(props.model);
+            const error = Vue.ref(false);
+
+            function getClass(option) {
+                return `btn btn-outline-${option.color ?? 'primary'} ${option.value == state.value[props.field] ? 'active' : ''}`;
+            }
+
+            function validate() {
+                const setError = message => props.errorCb && props.errorCb(message);
+                error.value = (_ => {
+                    const value = state.value[props.field];
+                    if (props.required && !value) {
+                        setError(props.field + ' is a required field');
+                        return 'Field is required';
+                    }
+                    else if (props.validator) {
+                        const errorMessage = props.validator(value, props.options);
+                        setError(errorMessage || '')
+                        return errorMessage;
+                    }
+
+                    setError('');
+                    return false;
+                })();
+            }
+
+            function selectValue(value) {
+                if (state.value[props.field] == value)
+                    state.value[props.field] = '';
+                else
+                    state.value[props.field] = value;
+                validate();
+            }
+
+            Vue.onMounted(validate);
+
+            return { state, getClass, selectValue, error };
+        }
+    }
+</script>

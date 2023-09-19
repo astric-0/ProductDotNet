@@ -2,31 +2,6 @@
     return "https://localhost:44326" + path;
 }
 
-function errorAlert (errorText) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: errorText
-    })
-}
-
-function errorsAlert(errors) {
-    const template = error => `<li class='list-group-item list-group-item-danger'> ${ error } </li>`;
-
-    let htmlStr = '';
-    Object.keys(errors).forEach(error => (htmlStr += template(errors[error])));
-
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        html: `
-            <ul>
-                ${ htmlStr }
-            </ul>
-        `
-    });
-}
-
 const app = Vue.createApp(appProps ?? {});
 
 (_ => {
@@ -42,7 +17,8 @@ const app = Vue.createApp(appProps ?? {});
     const componentList = [
         { name: 'c-input', main: check(_ => inputCP) },
         { name: 'c-checkboxes', main: check(_ => checkBoxCP) },
-        { name: 'c-radiobtns', main: check(_ => radioCP) }
+        { name: 'c-radiobtns', main: check(_ => radioCP) },
+        { name: 'product-list', main: check(_ => productListCP) }
     ];
 
     const nonloaded = [];

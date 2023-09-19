@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace ProductDotNet.Models
+namespace ProductDotNet.Service.Entity
 {
-    public class ProductModel
+    public class ProductEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
